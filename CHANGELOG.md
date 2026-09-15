@@ -42,6 +42,14 @@ separately by `model.SchemaVersion` (currently 1.2.0).
   ever go to the Mantle host for the configured region, and Bedrock requests
   never follow redirects.
 
+### Fixed
+- **Connection-string redaction now covers `?password=` in URL form.** libpq
+  accepts the password as a query parameter as well as in the userinfo; the
+  redactor only handled the latter, so `postgres://user@host/db?password=…`
+  passed through `RedactConnString` untouched. Every caller today hands it an
+  error message that pgx has already redacted, so this closes a gap in the
+  privacy boundary rather than a known leak.
+
 ## [0.8.1] - 2026-09-06
 
 ### Fixed
