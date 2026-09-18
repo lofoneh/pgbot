@@ -34,14 +34,17 @@ func TestIntegration_collationVersionMismatch(t *testing.T) {
 	t.Cleanup(func() { admin.Close(context.Background()) })
 
 	var vnum int
-	var db string
-	var recorded *string
-	if err := admin.QueryRow(ctx, `SELECT current_setting('server_version_num')::int, datname, datcollversion
-		FROM pg_database WHERE datname = current_database()`).Scan(&vnum, &db, &recorded); err != nil {
+	if err := admin.QueryRow(ctx, `SELECT current_setting('server_version_num')::int`).Scan(&vnum); err != nil {
 		t.Fatal(err)
 	}
 	if vnum < 150000 {
 		t.Skip("pg_database.datcollversion is PG15+")
+	}
+	var db string
+	var recorded *string
+	if err := admin.QueryRow(ctx, `SELECT datname, datcollversion FROM pg_database WHERE datname = current_database()`).
+		Scan(&db, &recorded); err != nil {
+		t.Fatal(err)
 	}
 	if recorded == nil {
 		t.Skip("this database's collation records no version (C/POSIX) — nothing can drift")
